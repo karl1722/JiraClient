@@ -39,3 +39,4 @@ Thumbs.db
 # Intellij #
 *.iml
 .idea
+target
