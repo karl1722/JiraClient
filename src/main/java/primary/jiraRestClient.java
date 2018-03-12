@@ -2,8 +2,7 @@ package primary;
 
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
@@ -104,6 +103,42 @@ public class jiraRestClient {
         }
     }
 
+    private void createJiraTicket(String projectKey, String issueType, jiraQuestionTicket questionTicket ) throws IOException, JSONException {
+        String projectId = getProjectIdFromKey(projectKey);
+        HttpURLConnection connection = connect("issue");
+
+        connection.setRequestMethod("POST");
+        JsonObject jsonBody = Json.createObjectBuilder()
+                .add("fields",
+                        Json.createObjectBuilder().add("project",
+                                Json.createObjectBuilder().add("id", projectId))
+                                .add("summary", questionTicket.summary)
+                                .add("assignee",
+                                        Json.createObjectBuilder().add("name","expert"))
+                                .add("issuetype",
+                                        Json.createObjectBuilder().add("name", issueType))
+                                .add("customfield_10102", questionTicket.question)
+                                .add("customfield_10103",
+                                        Json.createObjectBuilder().add("value", questionTicket.category))
+                ).build();
+
+        String encodedData = jsonBody.toString();
+        connection.getOutputStream().write(encodedData.getBytes());
+
+        try {
+            InputStream inputStream = connection.getInputStream();
+            System.out.println(inputStream);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+    public void createAnswerTicket(String questionTicketId) throws IOException, JSONException{
+        jiraQuestionTicket questionObject = getJiraQuestionTicketDetails(questionTicketId);
+        createJiraTicket("INT","Answer", questionObject);
+    }
+
     public void transitionJiraTicket(String issueKey, String transitionId) throws IOException{
 
         ///transitions
@@ -123,7 +158,6 @@ public class jiraRestClient {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     public void commentOnJiraTicket(String issueKey, String comment) throws IOException{
@@ -143,6 +177,54 @@ public class jiraRestClient {
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    public jiraQuestionTicket getJiraQuestionTicketDetails(String issueKey) throws  IOException, JSONException{
+        HttpURLConnection connection = connect("issue/" + issueKey);
+        connection.setRequestMethod("GET");
+
+        //to execute the request
+        int status = connection.getResponseCode();
+
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer content = new StringBuffer();
+        while ((inputLine = in.readLine()) != null) {
+            content.append(inputLine);
+        }
+        in.close();
+
+        JSONObject jsonResponse = new JSONObject(content.toString());
+        JSONObject jsonFieldsObject = new JSONObject(jsonResponse.get("fields").toString());
+        Map resultMap = new HashMap();
+
+        //for standard text fields i.e. not select lists etc
+        List<String> textFieldKeys = Arrays.asList("summary", "customfield_10102");
+        Iterator<String> systemKeysIterator = textFieldKeys.iterator();
+        while (systemKeysIterator.hasNext()) {
+
+            String key = systemKeysIterator.next().toString();
+            String value = jsonFieldsObject.get(key).toString();
+
+            resultMap.put(key,value);
+        }
+
+
+        List<String> customFieldKeys = Arrays.asList("customfield_10103");
+        Iterator<String> customFieldKeysIterator = customFieldKeys.iterator();
+
+        while (customFieldKeysIterator.hasNext()) {
+
+            String key = customFieldKeysIterator.next().toString();
+            JSONObject customFieldJsonObject= new JSONObject(jsonFieldsObject.get(key).toString());
+            String value = customFieldJsonObject.get("value").toString();
+
+           resultMap.put(key,value);
+      }
+
+    return new jiraQuestionTicket(resultMap);
+
     }
 
     private static String getJSON_Body() {
