@@ -76,34 +76,7 @@ public class jiraRestClient {
     }
 
 
-    public void createJiraTicket(String projectKey, String issueType) throws IOException, JSONException {
-        String projectId = getProjectIdFromKey(projectKey);
-
-        HttpURLConnection connection = connect("issue");
-
-        connection.setRequestMethod("POST");
-
-        JsonObject jsonBody = Json.createObjectBuilder()
-                .add("fields",
-                        Json.createObjectBuilder().add("project",
-                                Json.createObjectBuilder().add("id", projectId))
-                                .add("summary", "Test issue")
-                                .add("issuetype",
-                                        Json.createObjectBuilder().add("name", issueType))
-                ).build();
-
-        String encodedData = jsonBody.toString();
-        connection.getOutputStream().write(encodedData.getBytes());
-
-        try {
-            InputStream inputStream = connection.getInputStream();
-            System.out.println(inputStream);
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private void createJiraTicket(String projectKey, String issueType, jiraQuestionTicket questionTicket ) throws IOException, JSONException {
+    private void createJiraTicket(String projectKey, String issueType, jiraQuestionTicket questionTicket, String assignee ) throws IOException, JSONException {
         String projectId = getProjectIdFromKey(projectKey);
         HttpURLConnection connection = connect("issue");
 
@@ -114,7 +87,7 @@ public class jiraRestClient {
                                 Json.createObjectBuilder().add("id", projectId))
                                 .add("summary", questionTicket.summary)
                                 .add("assignee",
-                                        Json.createObjectBuilder().add("name",questionTicket.assignee))
+                                        Json.createObjectBuilder().add("name",assignee))
                                 .add("issuetype",
                                         Json.createObjectBuilder().add("name", issueType))
                                 .add("customfield_10102", questionTicket.question)
@@ -138,8 +111,8 @@ public class jiraRestClient {
 
     public void createAnswerTicket(String questionTicketId, String assignee) throws IOException, JSONException{
         jiraQuestionTicket questionObject = getJiraQuestionTicketDetails(questionTicketId);
-        questionObject.setAssignee(assignee);
-        createJiraTicket("INT","Answer", questionObject);
+
+        createJiraTicket("INT","Answer", questionObject, assignee);
     }
 
     public void transitionJiraTicket(String issueKey, String transitionId) throws IOException{
@@ -229,20 +202,4 @@ public class jiraRestClient {
     return new jiraQuestionTicket(resultMap);
 
     }
-
-    private static String getJSON_Body() {
-
-        JsonObject createIssue = Json.createObjectBuilder()
-                .add("fields",
-                        Json.createObjectBuilder().add("project",
-                                Json.createObjectBuilder().add("key", "HOW"))
-                                .add("summary", "Test issue")
-                                .add("description", "Test Issue")
-                                .add("issuetype",
-                                        Json.createObjectBuilder().add("name", "Task"))
-                ).build();
-
-        return createIssue.toString();
-    }
-
 }
