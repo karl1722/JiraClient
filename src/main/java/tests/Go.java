@@ -12,7 +12,7 @@ public class Go {
 
         jiraRestClient jiraClient = new jiraRestClient();
 //        jiraClient.getJiraQuestionTicketDetails("EXT-7");
-        jiraClient.createAnswerTicket("EXT-7");
+        jiraClient.createAnswerTicket("EXT-7","expert");
         //jiraClient.createJiraTicket("EXT", "Question");
         //jiraClient.transitionJiraTicket("HOW-3","11");
         //jiraClient.commentOnJiraTicket("HOW-3", "this is a comment");

@@ -4,6 +4,14 @@ import java.util.Map;
 
 public class jiraQuestionTicket extends jiraTicket {
 
+    public String getQuestion() {
+        return question;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
     String question;
     String category;
 

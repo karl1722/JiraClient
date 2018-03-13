@@ -114,7 +114,7 @@ public class jiraRestClient {
                                 Json.createObjectBuilder().add("id", projectId))
                                 .add("summary", questionTicket.summary)
                                 .add("assignee",
-                                        Json.createObjectBuilder().add("name","expert"))
+                                        Json.createObjectBuilder().add("name",questionTicket.assignee))
                                 .add("issuetype",
                                         Json.createObjectBuilder().add("name", issueType))
                                 .add("customfield_10102", questionTicket.question)
@@ -134,8 +134,11 @@ public class jiraRestClient {
 
     }
 
-    public void createAnswerTicket(String questionTicketId) throws IOException, JSONException{
+
+
+    public void createAnswerTicket(String questionTicketId, String assignee) throws IOException, JSONException{
         jiraQuestionTicket questionObject = getJiraQuestionTicketDetails(questionTicketId);
+        questionObject.setAssignee(assignee);
         createJiraTicket("INT","Answer", questionObject);
     }
 
