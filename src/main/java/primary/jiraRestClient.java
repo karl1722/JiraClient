@@ -75,6 +75,25 @@ public class jiraRestClient {
         //do nothing
     }
 
+    public JSONArray getProjects() throws IOException, JSONException{
+        HttpURLConnection connection= connect("project");
+
+        //to execute the request
+        int status = connection.getResponseCode();
+
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer content = new StringBuffer();
+        while ((inputLine = in.readLine()) != null) {
+            content.append(inputLine);
+        }
+        in.close();
+
+        JSONArray jsonArray = new JSONArray(content.toString());
+        return jsonArray;
+    }
+
 
     private void createJiraTicket(String projectKey, String issueType, jiraQuestionTicket questionTicket, String assignee ) throws IOException, JSONException {
         String projectId = getProjectIdFromKey(projectKey);
@@ -176,7 +195,7 @@ public class jiraRestClient {
         Map resultMap = new HashMap();
 
         //for standard text fields i.e. not select lists etc
-        List<String> textFieldKeys = Arrays.asList("summary", "customfield_10102");
+        List<String> textFieldKeys = Arrays.asList("summary");//, "customfield_10102");
         Iterator<String> systemKeysIterator = textFieldKeys.iterator();
         while (systemKeysIterator.hasNext()) {
 
@@ -186,7 +205,7 @@ public class jiraRestClient {
             resultMap.put(key,value);
         }
 
-
+        /*
         List<String> customFieldKeys = Arrays.asList("customfield_10103");
         Iterator<String> customFieldKeysIterator = customFieldKeys.iterator();
 
@@ -197,7 +216,7 @@ public class jiraRestClient {
             String value = customFieldJsonObject.get("value").toString();
 
            resultMap.put(key,value);
-      }
+      }*/
 
     return new jiraQuestionTicket(resultMap);
 
